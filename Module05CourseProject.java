@@ -40,18 +40,22 @@ public class Module05CourseProject implements patient{
 				if (bmi < 18.5){
 					outputValue.add("underweight");
 					outputValue.add("Low");
+					outputValue.add("Increase food consumption");
 				}
 				else if (18.5 <= bmi && bmi < 25) {
 					outputValue.add("normal weight");
 					outputValue.add("Low");
+					outputValue.add("Healthy! Keep up the good work!");
 				}
 				else if (25 <= bmi && bmi <30) {
 					outputValue.add("overweight");
 					outputValue.add("High");
+					outputValue.add("Slightly high, please lower food consumption");
 				}
 				else {
 					outputValue.add("obese");
 					outputValue.add("Highest");
+					outputValue.add("Please lower food consumption, danger to your heath");
 				}
 				
 				outputValues.add(outputValue);
