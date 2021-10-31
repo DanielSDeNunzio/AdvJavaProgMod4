@@ -53,7 +53,7 @@ public class Module05CourseProject implements patient{
 					outputValue.add("Slightly high, please lower food consumption");
 				}
 				else {
-					outputValue.add("obese");
+					outputValue.add("highly overweight");
 					outputValue.add("Highest");
 					outputValue.add("Please lower food consumption, danger to your heath");
 				}
