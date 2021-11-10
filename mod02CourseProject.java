@@ -114,41 +114,61 @@ public class mod02CourseProject {
 		}
 	}
 	
-	//function used to buy an item and display the cost of the item or items the person intends on purchasing
+	//function used to buy an item (for the store) and display the cost of the item the person intends on purchasing
 	public static void buyItem(Scanner userin, Connection connection)
 	{
-		System.out.println("Please enter the name of the item and how many you would like to buy: ");
-		String name = "SELECT * FROM items WHERE itemname= ?";
-		String trial = userin.nextLine();
-		int itemsname = userin.nextInt();
-		int temporary1 = 0;
-		try {
-			PreparedStatement sql = connection.prepareStatement(name);
-			sql.setString(1, trial);
-			ResultSet rs = sql.executeQuery();
-			temporary1 = rs.getInt("stock");
-			rs.updateInt("stock", temporary1 + itemsname );
-			}catch(Exception e) {
-				System.out.println("Couldn't find item, sorry!");
-			}
-		
-		
-	}
-	
-	
-	//function used to sell an item and display how much we would make.
-	public static void sellItem(Scanner userin, myLogger logger, Connection connection)
-	{
 		int found = 0;
-		System.out.println("Please enter the name of the item you would like to sell: ");
+		int tempstock = 0;
+		System.out.println("Please enter the name of the item you would like to buy: ");
 		String name = userin.nextLine();
 		try {
-			PreparedStatement sql = connection.prepareStatement("Select * from items Where itemname=" + name);
+			PreparedStatement sql = connection.prepareStatement("Select * from items Where itemname= ?");
+			sql.setString(1, name);
 			ResultSet rs = sql.executeQuery();
 			while(rs.next()) {
 				int tempint = rs.getInt("itemid");
 				String temp = rs.getString("itemname");
-				int tempstock = rs.getInt("stock");
+				tempstock = rs.getInt("stock");
+				double tempprice = rs.getDouble("price");
+				System.out.println(tempint + " " + temp + " " + tempstock + " " + tempprice);
+				found = 1;
+			}
+			}catch(Exception e) {
+				System.out.println("Couldn't find item, sorry!");
+			}
+		if(found == 1) {
+			System.out.println("How many would you like to buy?");
+			int num = userin.nextInt();
+			userin.nextLine();
+			tempstock = tempstock + num;
+			
+				try {
+					PreparedStatement sql = connection.prepareStatement("Update items Set stock = ? Where itemname= ?");
+					sql.setInt(1, tempstock);
+					sql.setString(2, name);
+					sql.executeUpdate();
+				}catch(Exception e) {
+					System.out.println("unable to alter stock");
+				}
+		}	
+	}
+	
+	
+	//function used to sell an item (from the stores stock) and display how much we would make.
+	public static void sellItem(Scanner userin, myLogger logger, Connection connection)
+	{
+		int found = 0;
+		int tempstock = 0;
+		System.out.println("Please enter the name of the item you would like to sell: ");
+		String name = userin.nextLine();
+		try {
+			PreparedStatement sql = connection.prepareStatement("Select * from items Where itemname= ?");
+			sql.setString(1, name);
+			ResultSet rs = sql.executeQuery();
+			while(rs.next()) {
+				int tempint = rs.getInt("itemid");
+				String temp = rs.getString("itemname");
+				tempstock = rs.getInt("stock");
 				double tempprice = rs.getDouble("price");
 				System.out.println(tempint + " " + temp + " " + tempstock + " " + tempprice);
 				found = 1;
@@ -160,45 +180,57 @@ public class mod02CourseProject {
 			System.out.println("How many would you like to sell?");
 			int num = userin.nextInt();
 			userin.nextLine();
-			try {
-				PreparedStatement sql = connection.prepareStatement("Update items Set stock = (stock + " + num + " from items Where itemname=" + name);
-				ResultSet rs = sql.executeQuery();
-			}catch(Exception e) {
-				System.out.println("unable to alter stock");
+			tempstock = tempstock - num;
+			if(tempstock >= 0)
+			{
+				try {
+					PreparedStatement sql = connection.prepareStatement("Update items Set stock = ? Where itemname= ?");
+					sql.setInt(1, tempstock);
+					sql.setString(2, name);
+					sql.executeUpdate();
+				}catch(Exception e) {
+					System.out.println("unable to alter stock");
+				}
+			}else {
+				System.out.println("Not enough in stock to sell that many.");
 			}
 		}
 		
 	}
 	
-	//base function used to add an item to the inventory list (uses other functions to add items to the list, will have to be
-	//changed to fit database later on).
+	//base function used to add an item to the inventory list
 	public static void addItem(Scanner userin, Connection connection)
 	{
-		System.out.println("Please enter the item number, item name, number in stock, and the price");
-		int temp5 = userin.nextInt();
+		int index;
+		String itemname;
+		int stock;
+		double price;
+		System.out.println("Please enter the item index, item name, stock, and price:");
+		index = userin.nextInt();
 		userin.nextLine();
-		String temp2 = userin.nextLine();
-		int temp3 = userin.nextInt();
+		itemname = userin.nextLine();
+		stock = userin.nextInt();
 		userin.nextLine();
-		double temp4 = userin.nextDouble();
-		try {
-			PreparedStatement sql = connection.prepareStatement("Insert into items (itemid, itemname, stock, price) Values (" + temp5 + ", " + temp2 + ", " + temp3 + ", " + temp4);
-			ResultSet rs = sql.executeQuery();
-			while(rs.next()) {
-				int tempint = rs.getInt("itemid");
-				String temp = rs.getString("itemname");
-				int tempstock = rs.getInt("stock");
-				double tempprice = rs.getDouble("price");
-				System.out.println(tempint + " " + temp + " " + tempstock + " " + tempprice);
+		price = userin.nextDouble();
 
-			}
-			}catch(Exception e) {
-				System.out.println("Couldn't find item, sorry!");
-			}
+		String sql = "insert into items "
+				+ " (itemid, itemname, stock, price)" + " values (?, ?, ?, ?)";
+		try {
+		PreparedStatement myStmt = connection.prepareStatement(sql);
+		myStmt.setInt(1, index);
+		myStmt.setString(2, itemname);
+		myStmt.setInt(3, stock);
+		myStmt.setDouble(4, price);
+		myStmt.executeUpdate();
+		
+		
+		}catch(Exception e) {
+			System.out.println("error");
+		}
 		
 	}
 	
-	//base function used to remove an item from our inventory list (will have to be altered to work with database later on
+	//function used to remove an item from our inventory list
 	public static void removeItem(Scanner userin, Connection connection)
 	{
 		System.out.println("Please enter the name of the item you would like to remove: ");
@@ -206,7 +238,7 @@ public class mod02CourseProject {
 		try {
 			PreparedStatement ps = connection.prepareStatement("DELETE FROM items WHERE itemname = ?");
 			ps.setString(1, item);
-			ps.executeQuery();
+			ps.executeUpdate();
 		}catch(Exception e) {
 			System.out.println("Couldn't remove item");
 		}
@@ -231,15 +263,15 @@ public class mod02CourseProject {
 		}
 		
 	}
-	
+	//function used to find items with names containing user input
 	public static void find(Scanner userin, Connection connection)
 	{
 		System.out.println("Please enter the name of the item you would like to find: ");
 		String name = userin.nextLine();
-		String query = "Select * from items Where itemname = ?";
+		String query = "Select * from items Where itemname Like ?";
 		try {
 		PreparedStatement sql = connection.prepareStatement(query);
-		sql.setString(0, name );
+		sql.setString(1, "%" + name + "%" );
 		ResultSet rs = sql.executeQuery();
 		while(rs.next()) {
 			int tempint = rs.getInt("itemid");
